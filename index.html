@@ -1,0 +1,720 @@
+<title>Ramo de Lirios ASCII</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: texto y controles a la izquierda, el ramo como una pantalla negra a la derecha; en móvil todo en una columna. */
+  :root {
+    --bg: #09080b;
+    --panel: #121016;
+    --ink: #f3ede7;
+    --mute: #9a919c;
+    --line: #2b2631;
+    --accent: #ff5a4a;
+    --accent-ink: #1a0604;
+    --ok: #7fd48a;
+    --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.55;
+    padding-block: 28px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap {
+    max-width: 1120px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  @media (min-width: 880px) {
+    .wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 620px); gap: 56px; }
+    .intro { position: sticky; top: 28px; }
+  }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: clamp(38px, 7vw, 64px); line-height: 1.02; letter-spacing: -0.01em;
+    margin: 0 0 18px; text-wrap: balance;
+  }
+  .lede { color: var(--mute); max-width: 44ch; margin: 0 0 26px; }
+
+  .controls { display: grid; gap: 18px; max-width: 440px; }
+  .field { display: grid; gap: 8px; }
+  .label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute);
+  }
+  .label output { color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  button {
+    font: inherit; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  button:hover { border-color: var(--mute); }
+  button[aria-checked="true"], button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button.primary:hover { background: #ff7a6c; border-color: #ff7a6c; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .status {
+    margin: 0; min-height: 3.1em; color: var(--mute);
+    border-left: 2px solid var(--line); padding-left: 12px; max-width: 440px;
+  }
+  .status[data-kind="ok"] { border-color: var(--ok); color: var(--ink); }
+  .status[data-kind="err"] { border-color: var(--accent); color: var(--ink); }
+
+  .steps {
+    margin: 26px 0 0; padding: 18px 0 0; list-style: none; border-top: 1px solid var(--line);
+    display: grid; gap: 8px; max-width: 440px; color: var(--mute); counter-reset: paso;
+  }
+  .steps li { display: grid; grid-template-columns: 2ch minmax(0, 1fr); gap: 10px; counter-increment: paso; }
+  .steps li::before { content: counter(paso); color: var(--accent); }
+
+  figure { margin: 0; min-width: 0; }
+  .screen { position: relative; background: #000; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  canvas { display: block; width: 100%; aspect-ratio: 600 / 760; max-width: 100%; }
+  .cam {
+    position: absolute; left: 10px; bottom: 10px; width: 26%; max-width: 150px;
+    border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: #000;
+  }
+  .cam video { display: block; width: 100%; transform: scaleX(-1); opacity: 0.85; }
+  .cam .meter { height: 4px; background: var(--line); }
+  .cam .meter i { display: block; height: 100%; width: 0; background: var(--accent); }
+  figcaption {
+    margin-top: 12px; font-size: 11px; letter-spacing: 0.06em; color: var(--mute);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<main class="wrap">
+  <section class="intro">
+    <p class="eyebrow">Ramo de Lirios</p>
+    <h1>No tengo un jardín, pero sé programar uno para ti</h1>
+    <p class="lede">Los lirios funcionan de 3 formas, la primera es automatica, la segunda es por medio de la barra que esta debajo, y la tercera es con tu puño.</p>
+
+    <div class="controls">
+      <div class="field">
+        <div class="label"><span id="modeLabel">Movimiento</span></div>
+        <div class="seg" role="radiogroup" aria-labelledby="modeLabel">
+          <button type="button" id="move-breathe" role="radio" aria-checked="true" data-move="breathe">Respirar</button>
+          <button type="button" id="move-manual" role="radio" aria-checked="false" data-move="manual">Manual</button>
+          <button type="button" id="move-hand" role="radio" aria-checked="false" data-move="hand">Mi mano</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label"><label for="bloom">Apertura</label><output id="bloomOut" for="bloom">100%</output></div>
+        <input id="bloom" type="range" min="0" max="100" step="1" value="100">
+      </div>
+
+      <p class="status" id="status" role="status" aria-live="polite">Modo respirar: las flores se abren y se cierran solas.</p>
+
+      <div class="field">
+        <div class="label"><label for="cols">Detalle</label><output id="colsOut" for="cols">130</output></div>
+        <input id="cols" type="range" min="60" max="170" step="5" value="130">
+      </div>
+
+      <div class="field">
+        <div class="label"><span id="charLabel">Caracteres</span></div>
+        <div class="seg" role="radiogroup" aria-labelledby="charLabel">
+          <button type="button" id="mode-letters" role="radio" aria-checked="true" data-mode="letters">Letras</button>
+          <button type="button" id="mode-symbols" role="radio" aria-checked="false" data-mode="symbols">Símbolos</button>
+          <button type="button" id="mode-code" role="radio" aria-checked="false" data-mode="code">Código</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button type="button" id="shimmer" aria-pressed="true">Brillo</button>
+        <button type="button" id="again" class="primary">Nuevo ramo</button>
+      </div>
+    </div>
+
+    <ol class="steps">
+      <li>Elige «Mi mano» y permite la cámara.</li>
+      <li>Abre el puño: las flores florecen.</li>
+      <li>Cierra el puño: vuelven a ser brotes.</li>
+      </li>Solo puedes usar una mano a la vez.
+      </li>
+    </ol>
+  </section>
+
+  <figure>
+    <div class="screen" id="screen">
+      <canvas id="art" role="img" aria-label="Ramo de lirios de colores dibujado con letras sobre fondo negro, que se abre y se cierra"></canvas>
+      <div class="cam" id="cam" hidden>
+        <video id="video" playsinline muted></video>
+        <div class="meter"><i id="meterBar"></i></div>
+      </div>
+    </div>
+    <figcaption id="cap">Lilium</figcaption>
+  </figure>
+</main>
+
+<script>
+(function () {
+  var SW = 600, SH = 760, ASPECT = 1.8;
+  var TASKS = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+  var MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $('art'), g = canvas.getContext('2d');
+  var screenEl = $('screen');
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  var state = {
+    seed: 4821, cols: (window.innerWidth < 560 ? 85 : 130), mode: 'letters',
+    shimmer: !reduce, move: reduce ? 'manual' : 'breathe',
+    bloom: 1,        // apertura que se dibuja
+    target: 1,       // apertura que se busca (mano o control)
+    manual: 1
+  };
+  var baseCanvas, src, sctx, flowers = [], flowerCount = 0;
+  var rows = 0, stars = [];
+  var imgData = null;
+
+  // ---------- utilidades ----------
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function smooth(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+  var rgbCache = {};
+  function rgb(h) {
+    var c = rgbCache[h];
+    if (!c) { c = rgbCache[h] = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+    return c;
+  }
+  function mix(a, b, t) {
+    var A = rgb(a), B = rgb(b);
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+
+  var PAL = {
+    red:      { base: '#d8161e', tip: '#ff5744', dark: '#76060e', throat: '#9aa12a', speck: '#4a0309', fil: '#f4dcb0' },
+    pink:     { base: '#c83fc9', tip: '#f7a0e6', dark: '#7a1a82', throat: '#c9d24a', speck: '#4d0f55', fil: '#f6e6c0' },
+    cream:    { base: '#e6dccb', tip: '#fffaf0', dark: '#b7a68a', throat: '#cbd45a', speck: '#8a5a3a', fil: '#e9c98a' },
+    yellow:   { base: '#e8b522', tip: '#fde66e', dark: '#a87c10', throat: '#9fb63a', speck: '#7a4a0a', fil: '#fff0b8' },
+    peach:    { base: '#d99a62', tip: '#f8cda0', dark: '#9a5a2e', throat: '#b8b24a', speck: '#6a3318', fil: '#f6e2b8' },
+    burgundy: { base: '#8f1633', tip: '#cf445e', dark: '#470813', throat: '#7c8a22', speck: '#2a0309', fil: '#e8c9a0' },
+    mauve:    { base: '#a74b7c', tip: '#dd92b8', dark: '#5e2145', throat: '#b0b848', speck: '#3a1228', fil: '#f0dcc0' }
+  };
+  var GREEN = '#3f8f3a';
+
+  // ---------- parte fija: tallos, hojas, botones ----------
+  function leaf(ctx, x0, y0, x1, y1, w, bend, c1, c2) {
+    var dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1;
+    var nx = -dy / len, ny = dx / len, mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    var gr = ctx.createLinearGradient(x0, y0, x1, y1);
+    gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(mx + nx * (w + bend), my + ny * (w + bend), x1, y1);
+    ctx.quadraticCurveTo(mx - nx * (w - bend), my - ny * (w - bend), x0, y0);
+    ctx.closePath();
+    ctx.fillStyle = gr; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,30,0,0.35)'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(mx + nx * bend, my + ny * bend, x1, y1);
+    ctx.strokeStyle = 'rgba(210,255,170,0.35)'; ctx.lineWidth = 1.6; ctx.stroke();
+  }
+
+  function bud(ctx, x, y, len, ang, pal) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    var gr = ctx.createLinearGradient(0, 0, len, 0);
+    gr.addColorStop(0, '#5fa845'); gr.addColorStop(0.35, pal.dark); gr.addColorStop(1, pal.base);
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(len * 0.2, -len * 0.22, len * 0.75, -len * 0.2, len, 0);
+    ctx.bezierCurveTo(len * 0.75, len * 0.2, len * 0.2, len * 0.22, 0, 0);
+    ctx.fillStyle = gr; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- flores: parámetros fijos, dibujo según apertura ----------
+  function makeFlower(r, x, y, len, palName, delay) {
+    var pal = PAL[palName], petals = [], k, s;
+    for (k = 0; k < 6; k++) {
+      var inner = k % 2;
+      var L = len * (inner ? 0.93 : 1) * (0.94 + r() * 0.1);
+      var specks = [];
+      for (s = 0; s < 16; s++) specks.push({ u: 0.1 + r() * 0.42, v: (r() - 0.5) * 0.9, s: 0.01 + r() * 0.012 });
+      petals.push({ phi: k * Math.PI / 3 + (r() - 0.5) * 0.18, L: L, wr: inner ? 0.3 : 0.26, inner: inner, specks: specks });
+    }
+    var stam = [];
+    for (k = 0; k < 6; k++) stam.push({ a: -0.85 + k * 0.34 + (r() - 0.5) * 0.12, l: 0.5 + r() * 0.14, j: (r() - 0.5) * 0.2 });
+    return {
+      x: x, y: y, len: len, pal: pal, delay: delay,
+      az: r() * 6.283,                 // giro de los pétalos en la flor abierta
+      tilt: 0.74 + r() * 0.26,         // inclinación del plano de la flor
+      lean: clamp((x - 300) / 300, -1, 1) * 0.55 + (r() - 0.5) * 0.2, // hacia dónde se inclina el botón
+      petals: petals, stam: stam
+    };
+  }
+
+  function drawStamens(ctx, f, sc) {
+    var len = f.len * sc, k, a, l, ex, ey, cx, cy, pal = f.pal, st;
+    for (k = 0; k < 6; k++) {
+      st = f.stam[k]; a = st.a; l = len * st.l;
+      ex = Math.cos(a) * l; ey = Math.sin(a) * l;
+      cx = Math.cos(a) * l * 0.55; cy = Math.sin(a) * l * 0.55 + st.j * l;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(cx, cy, ex, ey);
+      ctx.strokeStyle = pal.fil; ctx.lineWidth = 2.2; ctx.stroke();
+      ctx.save(); ctx.translate(ex, ey); ctx.rotate(a + 0.3);
+      ctx.beginPath(); ctx.ellipse(0, 0, len * 0.09, len * 0.034, 0, 0, 6.283);
+      ctx.fillStyle = '#8f3d16'; ctx.fill();
+      ctx.restore();
+    }
+    l = len * 0.7; a = 0.12;
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(l * 0.5, l * 0.04, Math.cos(a) * l, Math.sin(a) * l);
+    ctx.strokeStyle = '#d6e08a'; ctx.lineWidth = 2.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(Math.cos(a) * l, Math.sin(a) * l, 3.4, 0, 6.283);
+    ctx.fillStyle = '#9ab53a'; ctx.fill();
+  }
+
+  function drawPetal(ctx, f, pt, tx, ty, b) {
+    var L = Math.max(6, Math.hypot(tx, ty));
+    var W = pt.wr * pt.L * (0.78 + 0.22 * b);
+    var pal = f.pal, cl = 1 - b;
+    ctx.save();
+    ctx.rotate(Math.atan2(ty, tx));
+    var gr = ctx.createLinearGradient(0, 0, L, 0);
+    gr.addColorStop(0, mix(pal.throat, GREEN, cl * 0.7));
+    gr.addColorStop(0.16, mix(pal.dark, GREEN, cl * 0.55));
+    gr.addColorStop(0.55, mix(pal.base, GREEN, cl * 0.3));
+    gr.addColorStop(1, mix(pal.tip, pal.base, cl * 0.55));
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(L * 0.22, -W * 0.95, L * 0.72, -W * 1.05, L, 0);
+    ctx.bezierCurveTo(L * 0.72, W * 1.05, L * 0.22, W * 0.95, 0, 0);
+    ctx.closePath();
+    ctx.fillStyle = gr; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.78)'; ctx.lineWidth = 1.2 + 1.8 * b; ctx.stroke();
+    if (b > 0.3) {
+      ctx.save();
+      ctx.clip();
+      var al = clamp((b - 0.3) / 0.5, 0, 1), v;
+      for (v = -2; v <= 2; v++) {
+        ctx.beginPath();
+        ctx.moveTo(L * 0.08, 0);
+        ctx.quadraticCurveTo(L * 0.5, v * W * 0.28, L * 0.92, v * W * 0.06);
+        ctx.strokeStyle = v === 0 ? 'rgba(255,255,255,' + (0.32 * al).toFixed(2) + ')' : 'rgba(0,0,0,' + (0.2 * al).toFixed(2) + ')';
+        ctx.lineWidth = v === 0 ? Math.max(1.5, L * 0.03) : 1.2;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = al;
+      ctx.fillStyle = pal.speck;
+      for (var s = 0; s < pt.specks.length; s++) {
+        var sp = pt.specks[s];
+        ctx.beginPath(); ctx.arc(L * sp.u, sp.v * W, L * sp.s, 0, 6.283); ctx.fill();
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawFlower(ctx, f, b) {
+    var cl = 1 - b, i, pt, order = [], cosL = Math.cos(f.lean), sinL = Math.sin(f.lean);
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    for (i = 0; i < 6; i++) {
+      pt = f.petals[i];
+      var bi = pt.inner ? Math.pow(b, 1.25) : b;
+      var elev = (1 - bi) * (pt.inner ? 1.22 : 1.32);
+      var phi = pt.phi + f.az;
+      var px = Math.cos(phi) * Math.cos(elev) * pt.L;
+      var py = Math.sin(phi) * Math.cos(elev) * pt.L * f.tilt;
+      var ay = -Math.sin(elev) * pt.L * 0.92;
+      // la flor cerrada se inclina hacia afuera
+      var tx = px * cosL - (py + ay) * sinL;
+      var ty = px * sinL + (py + ay) * cosL;
+      order.push({ pt: pt, tx: tx, ty: ty, key: (b > 0.5 ? pt.inner * 100 : (1 - pt.inner) * 100) + ty * 0.01 });
+    }
+    order.sort(function (a, c) { return a.key - c.key; });
+    for (i = 0; i < order.length; i++) drawPetal(ctx, f, order[i].pt, order[i].tx, order[i].ty, b);
+    var sc = clamp((b - 0.55) / 0.45, 0, 1);
+    if (sc > 0.02) {
+      ctx.rotate(f.az);
+      ctx.scale(1, f.tilt);
+      ctx.globalAlpha = sc;
+      drawStamens(ctx, f, 0.35 + 0.65 * sc);
+    }
+    ctx.restore();
+  }
+
+  function buildScene(seed) {
+    var r = rng(seed);
+    var rr = function (a, b) { return a + (b - a) * r(); };
+    baseCanvas = document.createElement('canvas');
+    baseCanvas.width = SW; baseCanvas.height = SH;
+    var ctx = baseCanvas.getContext('2d');
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    var bx = 300 + rr(-8, 8), by = 742, i;
+    var slots = [
+      ['peach', 300, 140, 85], ['cream', 185, 215, 90], ['yellow', 415, 205, 88],
+      ['yellow', 140, 330, 86], ['mauve', 462, 300, 76], ['burgundy', 470, 440, 72],
+      ['cream', 410, 372, 105], ['peach', 322, 468, 100], ['yellow', 182, 470, 92],
+      ['pink', 215, 372, 108], ['red', 300, 265, 116]
+    ];
+    flowerCount = slots.length;
+    var pos = slots.map(function (s) {
+      return [300 + (s[1] - 300) * 1.15 + rr(-10, 10), 330 + (s[2] - 330) * 1.15 + rr(-10, 10)];
+    });
+
+    ctx.strokeStyle = '#2f8a3c';
+    for (i = 0; i < slots.length; i++) {
+      ctx.beginPath(); ctx.moveTo(pos[i][0], pos[i][1]);
+      ctx.quadraticCurveTo(pos[i][0] + (bx - pos[i][0]) * 0.15, (pos[i][1] + by) / 2, bx + rr(-14, 14), by);
+      ctx.lineWidth = rr(6, 9); ctx.stroke();
+    }
+    var greens = [['#2e8a3a', '#79cf4e'], ['#1d6e34', '#4fb04a'], ['#3f9a3c', '#a9dc5c'], ['#256f2c', '#5cbc4c']];
+    for (i = 0; i < 22; i++) {
+      var gc = greens[Math.floor(r() * greens.length)];
+      var tx = bx + rr(-170, 170), ty = rr(535, 690);
+      leaf(ctx, bx + rr(-18, 18), by + rr(-10, 0), tx, ty, rr(7, 14), rr(-24, 24), gc[0], gc[1]);
+    }
+    bud(ctx, 372, 82, 52, -1.0 + rr(-0.1, 0.1), PAL.burgundy);
+    bud(ctx, 232, 98, 44, -2.2 + rr(-0.1, 0.1), PAL.mauve);
+
+    flowers = [];
+    for (i = 0; i < slots.length; i++) {
+      flowers.push(makeFlower(r, pos[i][0], pos[i][1], slots[i][3] * 1.12 * rr(0.94, 1.06), slots[i][0], rr(0, 0.5)));
+    }
+
+    src = document.createElement('canvas');
+    src.width = SW; src.height = SH;
+    sctx = src.getContext('2d', { willReadFrequently: true });
+    sctx.lineCap = 'round'; sctx.lineJoin = 'round';
+
+    var rowsN = Math.round(state.cols * (SH / SW) / ASPECT);
+    var sr2 = rng(seed + 7), st = [], starCh = '..·.+*';
+    stars = [];
+    for (var rw = 0; rw < 140; rw++) {
+      for (var cl = 0; cl < 200; cl++) {
+        var q = sr2();
+        if (q < 0.011) stars.push({ u: cl / 200, v: rw / 140, ph: sr2(), ch: starCh.charAt(Math.floor(sr2() * starCh.length)) });
+      }
+    }
+  }
+
+  function renderSource(g0) {
+    sctx.clearRect(0, 0, SW, SH);
+    sctx.drawImage(baseCanvas, 0, 0);
+    for (var i = 0; i < flowers.length; i++) {
+      var f = flowers[i];
+      var b = smooth((g0 - f.delay) / 0.5);
+      drawFlower(sctx, f, b);
+    }
+    imgData = sctx.getImageData(0, 0, SW, SH).data;
+  }
+
+  // ---------- de píxeles a caracteres ----------
+  var RAMP_LETTERS = ' .,:;TEQUIEROMUCHOJAMILETHtequieromuchojamileth*#MW&8%B@$';
+  var RAMP_SYMBOLS = ' .:-=+*#%@';
+  var CODE = 'const x=pts[k][1];if(y>ymax)ymax=y;for(i<n;i++){}<>/&|$';
+
+  function clamp255(v) { return v > 255 ? 255 : (v < 0 ? 0 : v | 0); }
+
+  function drawAscii(t) {
+    var cssW = screenEl.clientWidth || 600;
+    var cssH = cssW * SH / SW;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var pw = Math.round(cssW * dpr), ph = Math.round(cssH * dpr);
+    if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = '#000';
+    g.fillRect(0, 0, cssW, cssH);
+
+    var cols = state.cols;
+    rows = Math.round(cols * (SH / SW) / ASPECT);
+    var cw = SW / cols, ch = SH / rows;
+    var ccw = cssW / cols, cch = cssH / rows;
+    var fs = Math.min(ccw / 0.6, cch) * 0.95;
+    g.font = '400 ' + fs.toFixed(2) + 'px "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    var sh = state.shimmer;
+    var occ = new Uint8Array(cols * rows);
+    var ramp = state.mode === 'symbols' ? RAMP_SYMBOLS : RAMP_LETTERS;
+    var mode = state.mode;
+    var tick = Math.floor(t / 260);
+
+    // celdas
+    var row, col;
+    var out = [];
+    for (row = 0; row < rows; row++) {
+      var y0 = Math.floor(row * ch), y1 = Math.min(SH, Math.floor((row + 1) * ch));
+      for (col = 0; col < cols; col++) {
+        var x0 = Math.floor(col * cw), x1 = Math.min(SW, Math.floor((col + 1) * cw));
+        var sr = 0, sg = 0, sb = 0, sa = 0, n = 0;
+        for (var y = y0; y < y1; y += 2) {
+          for (var x = x0; x < x1; x++) {
+            var i = (y * SW + x) * 4, a = imgData[i + 3];
+            sa += a; sr += imgData[i] * a; sg += imgData[i + 1] * a; sb += imgData[i + 2] * a; n++;
+          }
+        }
+        if (!n || sa === 0) continue;
+        var cov = sa / (255 * n);
+        if (cov < 0.22) continue;
+        var R = sr / sa, G = sg / sa, B = sb / sa;
+        var gray = 0.299 * R + 0.587 * G + 0.114 * B;
+        R = gray + (R - gray) * 1.35; G = gray + (G - gray) * 1.35; B = gray + (B - gray) * 1.35;
+        if (R < 0) R = 0; if (G < 0) G = 0; if (B < 0) B = 0;
+        var m = Math.max(R, G, B) || 1;
+        var k = Math.min(2.2, Math.max(1.1, 175 / m));
+        var lum = gray / 255;
+        var hi = ((col * 73856093) ^ (row * 19349663) ^ state.seed) >>> 0;
+        var ph0 = (hi % 1000) / 1000;
+        var f = sh ? 0.9 + 0.2 * Math.sin(t * 0.0016 + ph0 * 6.283 + col * 0.09 + row * 0.07) : 1;
+        var chr;
+        if (mode === 'code') {
+          chr = cov < 0.5 ? '.' : CODE.charAt(hi % CODE.length);
+        } else {
+          var d = clamp(0.15 + lum * 0.9, 0, 1) * Math.sqrt(cov);
+          var idx = Math.floor(d * (ramp.length - 1));
+          if (idx < 1) idx = 1;
+          if (sh && ((tick + hi) % 13 === 0)) idx = Math.min(ramp.length - 1, idx + 1);
+          chr = ramp.charAt(idx);
+        }
+        occ[row * cols + col] = 1;
+        g.fillStyle = 'rgb(' + clamp255(R * k * f) + ',' + clamp255(G * k * f) + ',' + clamp255(B * k * f) + ')';
+        g.fillText(chr, (col + 0.5) * ccw, (row + 0.5) * cch);
+      }
+    }
+    // estrellas
+    for (var s = 0; s < stars.length; s++) {
+      var sp = stars[s];
+      var sc = Math.min(cols - 1, Math.floor(sp.u * cols)), sr3 = Math.min(rows - 1, Math.floor(sp.v * rows));
+      if (occ[sr3 * cols + sc]) continue;
+      var al = 0.25 + 0.4 * (sh ? 0.5 + 0.5 * Math.sin(t * 0.002 + sp.ph * 40) : 0.5);
+      g.fillStyle = 'rgba(235,230,255,' + al.toFixed(2) + ')';
+      g.fillText(sp.ch, (sc + 0.5) * ccw, (sr3 + 0.5) * cch);
+    }
+  }
+
+  function caption() {
+    $('cap').textContent = 'Lilium · ' + flowerCount + ' flores · semilla ' + state.seed + ' · ' + state.cols + ' × ' + rows + ' caracteres';
+  }
+
+  // ---------- movimiento ----------
+  var bloomEl = $('bloom'), bloomOut = $('bloomOut'), statusEl = $('status');
+  function setStatus(msg, kind) { statusEl.textContent = msg; statusEl.setAttribute('data-kind', kind || ''); }
+  function showBloom() {
+    var p = Math.round(state.bloom * 100);
+    bloomOut.textContent = p + '%';
+    if (document.activeElement !== bloomEl) bloomEl.value = p;
+  }
+
+  var raf = 0, last = 0, lastBloom = -1, dirty = true;
+  function frame(t) {
+    raf = requestAnimationFrame(frame);
+    if (t - last < 33) return;
+    last = t;
+
+    if (state.move === 'breathe') {
+      var s = 0.5 + 0.5 * Math.cos(2 * Math.PI * t / 9000);
+      state.target = clamp(1.5 * s - 0.25, 0, 1);
+      state.bloom = state.target;
+    } else if (state.move === 'manual') {
+      state.target = state.manual;
+      state.bloom += (state.target - state.bloom) * 0.25;
+    } else {
+      detectHand(t);
+      state.bloom += (state.target - state.bloom) * 0.2;
+    }
+    if (Math.abs(state.bloom - state.target) < 0.003) state.bloom = state.target;
+
+    if (state.shimmer || dirty || Math.abs(state.bloom - lastBloom) > 0.001) {
+      if (dirty || Math.abs(state.bloom - lastBloom) > 0.001 || !imgData) renderSource(state.bloom);
+      drawAscii(t);
+      lastBloom = state.bloom;
+      dirty = false;
+      showBloom();
+    }
+  }
+
+  // ---------- mano con MediaPipe ----------
+  var landmarker = null, stream = null, handBusy = false, lastVideoTime = -1;
+  var videoEl = $('video'), camBox = $('cam'), meterBar = $('meterBar');
+
+  // Abertura de la mano: distancia de las yemas a la muñeca, dividida por el tamaño de la palma.
+  // Mano abierta ≈ 1.9, puño ≈ 1.0.
+  function handOpenness(lm, aspect) {
+    function dist(a, b) { return Math.hypot((a.x - b.x) * aspect, a.y - b.y); }
+    var palm = dist(lm[0], lm[9]) || 1e-6, tips = [8, 12, 16, 20], sum = 0, i;
+    for (i = 0; i < tips.length; i++) sum += dist(lm[tips[i]], lm[0]);
+    var ratio = sum / tips.length / palm;
+    return clamp((ratio - 1.2) / (1.8 - 1.2), 0, 1);
+  }
+  window.__handOpenness = handOpenness;
+
+  function detectHand(t) {
+    if (!landmarker || videoEl.readyState < 2 || videoEl.currentTime === lastVideoTime) return;
+    lastVideoTime = videoEl.currentTime;
+    var res;
+    try { res = landmarker.detectForVideo(videoEl, t); } catch (e) { return; }
+    if (res && res.landmarks && res.landmarks.length) {
+      var aspect = (videoEl.videoWidth || 4) / (videoEl.videoHeight || 3);
+      var o = handOpenness(res.landmarks[0], aspect);
+      state.target = o;
+      meterBar.style.width = Math.round(o * 100) + '%';
+      setStatus(o > 0.66 ? 'Mano abierta: las flores florecen.' : (o < 0.33 ? 'Puño cerrado: las flores se cierran.' : 'Abre o cierra la mano.'), 'ok');
+    } else {
+      setStatus('No veo tu mano. Ponla frente a la cámara con buena luz.', '');
+    }
+  }
+
+  function stopHand() {
+    if (stream) { stream.getTracks().forEach(function (tr) { tr.stop(); }); stream = null; }
+    videoEl.srcObject = null;
+    camBox.hidden = true;
+  }
+
+  async function startHand() {
+    if (handBusy) return false;
+    handBusy = true;
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('nocam');
+      setStatus('Pidiendo permiso para la cámara…', '');
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+      videoEl.srcObject = stream;
+      await videoEl.play();
+      camBox.hidden = false;
+      if (!landmarker) {
+        setStatus('Cargando el detector de manos (unos segundos la primera vez)…', '');
+        var vision = await import(TASKS + '/vision_bundle.mjs');
+        var fileset = await vision.FilesetResolver.forVisionTasks(TASKS + '/wasm');
+        try {
+          landmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: MODEL, delegate: 'GPU' }, runningMode: 'VIDEO', numHands: 1
+          });
+        } catch (e1) {
+          landmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: MODEL, delegate: 'CPU' }, runningMode: 'VIDEO', numHands: 1
+          });
+        }
+      }
+      setStatus('Listo. Abre y cierra el puño frente a la cámara.', 'ok');
+      return true;
+    } catch (e) {
+      stopHand();
+      var denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+      var msg = denied
+        ? 'La cámara no está disponible aquí o no diste permiso. Si ves esta página dentro de Claude, descarga el archivo y ábrelo en Chrome desde tu computador (por ejemplo con Live Server en 127.0.0.1:5500).'
+        : 'No pude iniciar la detección de manos. Revisa tu conexión a internet y la cámara, y abre el archivo directamente en Chrome.';
+      setStatus(msg, 'err');
+      return false;
+    } finally {
+      handBusy = false;
+    }
+  }
+
+  // ---------- controles ----------
+  var moveBtns = document.querySelectorAll('[data-move]');
+  function markMove(name) {
+    Array.prototype.forEach.call(moveBtns, function (o) { o.setAttribute('aria-checked', o.getAttribute('data-move') === name ? 'true' : 'false'); });
+  }
+  async function setMove(name) {
+    if (name === 'hand') {
+      markMove('hand');
+      var ok = await startHand();
+      if (ok) { state.move = 'hand'; }
+      else { state.move = 'manual'; state.manual = state.bloom; markMove('manual'); }
+      return;
+    }
+    stopHand();
+    state.move = name;
+    markMove(name);
+    if (name === 'manual') {
+      state.manual = state.bloom;
+      setStatus('Mueve el control de apertura.', '');
+    } else {
+      setStatus('Modo respirar: las flores se abren y se cierran solas.', '');
+    }
+  }
+  Array.prototype.forEach.call(moveBtns, function (b) {
+    b.addEventListener('click', function () { setMove(b.getAttribute('data-move')); });
+  });
+  bloomEl.addEventListener('input', function () {
+    state.manual = parseInt(bloomEl.value, 10) / 100;
+    if (state.move !== 'manual') { stopHand(); state.move = 'manual'; markMove('manual'); setStatus('Mueve el control de apertura.', ''); }
+  });
+
+  var colsEl = $('cols');
+  colsEl.addEventListener('input', function () {
+    state.cols = parseInt(colsEl.value, 10);
+    $('colsOut').textContent = state.cols;
+    dirty = true;
+  });
+  var modeBtns = document.querySelectorAll('[data-mode]');
+  Array.prototype.forEach.call(modeBtns, function (b) {
+    b.addEventListener('click', function () {
+      state.mode = b.getAttribute('data-mode');
+      Array.prototype.forEach.call(modeBtns, function (o) { o.setAttribute('aria-checked', o === b ? 'true' : 'false'); });
+      dirty = true;
+    });
+  });
+  var shimmerBtn = $('shimmer');
+  shimmerBtn.setAttribute('aria-pressed', state.shimmer ? 'true' : 'false');
+  shimmerBtn.addEventListener('click', function () {
+    state.shimmer = !state.shimmer;
+    shimmerBtn.setAttribute('aria-pressed', state.shimmer ? 'true' : 'false');
+    dirty = true;
+  });
+  $('again').addEventListener('click', function () {
+    state.seed = 1000 + Math.floor(Math.random() * 9000);
+    buildScene(state.seed);
+    dirty = true;
+  });
+  if (window.ResizeObserver) {
+    new ResizeObserver(function () { dirty = true; }).observe(screenEl);
+  } else {
+    window.addEventListener('resize', function () { dirty = true; });
+  }
+
+  // arranque
+  colsEl.value = state.cols; $('colsOut').textContent = state.cols;
+  if (state.move === 'manual') { markMove('manual'); setStatus('Mueve el control de apertura.', ''); }
+  buildScene(state.seed);
+  renderSource(state.bloom);
+  drawAscii(0);
+  rows = Math.round(state.cols * (SH / SW) / ASPECT);
+  caption();
+  window.__lilium = {
+    set: function (v) { state.move = 'manual'; state.manual = v; state.bloom = v; state.target = v; dirty = true; },
+    state: state
+  };
+  var oldCols = state.cols;
+  raf = requestAnimationFrame(function loop(t) {
+    frame(t);
+    if (state.cols !== oldCols || true) { rows = Math.round(state.cols * (SH / SW) / ASPECT); }
+    if (!loop.c || loop.c !== state.cols + ':' + state.seed) { loop.c = state.cols + ':' + state.seed; caption(); }
+  });
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('400 12px "JetBrains Mono"').then(function () { dirty = true; }, function () {});
+  }
+})();
+</script>
